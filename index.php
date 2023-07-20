@@ -1,40 +1,51 @@
 <?php
+// Set error reporting to display all errors
 error_reporting(E_ALL);
+// Set to display errors
 ini_set("display_errors", 1);
+// Include the index.php file
 require_once("index.php");
-
+// Define a function named "dd" that will print and terminate execution.  The function, "dd"  is a helper function commonly used for debugging purposes. It dumps the given variable or data and stops script execution.
 function dd($data)
 {
   echo '<pre>';
   die(var_dump($data));
   echo '</pre>';
 }
+// Set the formError variable to false
 $formError = false;
-
+// Attempt to create a new PDO connection to the MySQL database
 try {
-  $pdo = new PDO('mysql:host=localhost:8889;dbname=email_list', 'root', 'root');
+  $pdo = new PDO('mysql:host=127.0.0.1;dbname=email_list', 'root', 'root');
 } catch (PDOException $e) {
+  // If an error occurs, dump the error message using the dd function
   dd($e->getMessage());
 }
+// Prepare and execute a SELECT query to retrieve all rows from the "emails" table
 $statement = $pdo->prepare('select * from emails');
 $statement->execute();
 $allEmails = $statement->fetchAll(PDO::FETCH_OBJ);
 
 
+// Check if the request method is POST
 if ($_SERVER['REQUEST_METHOD'] == "POST") {
+  // Check if the email field is not empty
   if ($_POST['email'] != "") {
+    // Create an array with the email value
     $data = [
       "email" => $_POST["email"]
     ];
-    $statement = $pdo->prepare("INSERT INTO emails (email, created_at, updated_at) VALUES
-    (:email, now(), now())");
-
+    // Prepare an INSERT query to insert the email, current time, and update time into the "emails" table
+    $statement = $pdo->prepare("INSERT INTO emails (email, created_at, updated_at) VALUES (:email, now(), now())");
+    // Execute the query with the data array
     $newEmail = $statement->execute($data);
 
+    // If the email was inserted successfully, redirect to the "ThankYou.php" page
     if ($newEmail) {
-      header('Location: ' . 'http://localhost:8888/ThankYou.php');
+      header('Location: ' . 'http://127.0.0.1/ThankYou.php');
     }
   } else {
+    // If the email field is empty, set the formError variable to true
     $formError = true;
     // dd('Error Empty Field');
   }
@@ -165,7 +176,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             </h1>
             <p class="mx-auto mb-10 max-w-[600px] text-base text-[#e4e4e4] sm:text-lg sm:leading-relaxed md:text-xl md:leading-relaxed">
               Today we got <span class="inline-flex items-center justify-center rounded-lg bg-black py-1 px-1 text-center text-base font-medium text-white transition duration-300 ease-in-out hover:text-primary hover:shadow-lg sm:px-10">
-                <?php echo count($allEmails); ?></span> developers using our templates.
+                <?php 
+                // Display the count of elements in the $allEmails array
+                echo count($allEmails); ?></span> developers using our templates.
             </p>
             <form action="/index.php" method="POST" class="mb-2 flex flex-wrap items-center justify-center">
               <ul class=" flex flex-wrap items-center justify-center">
@@ -188,6 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
               </ul>
 
             </form>
+            <!-- This code block is a conditional statement that checks if the $formError variable is true. If it is true, it displays a div element with an error message prompting the user to input their email address. -->
             <?php if ($formError) : ?>
               <div class="flex items-center py-1 px-1 text-base font-medium bg-black text-white 
                   mb-10 flex flex-wrap items-center justify-center transition duration-300 ease-in-out hover:opacity-70 sm:px-10">
